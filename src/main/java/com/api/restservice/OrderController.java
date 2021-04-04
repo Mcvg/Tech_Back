@@ -31,8 +31,8 @@ public class OrderController extends TechBackApplication {
 	private final AtomicLong counter = new AtomicLong();
 	private static final double priceWithoutDomicile = 100000;
 
-	@GetMapping("/getList") // anotaciÛn garantiza que las solicitudes HTTP GET /getList se asignen al
-							// getList()mÈtodo.
+	@GetMapping("/getList") // anotaci√≥n garantiza que las solicitudes HTTP GET /getList se asignen al
+							// getList()m√©todo.
 	public List<Order> getList(@RequestParam(value = "id") String id) {
 		List<Order> listOrder = new ArrayList<Order>();
 		for (Order order : lista) {
@@ -54,7 +54,7 @@ public class OrderController extends TechBackApplication {
 		long time = Calendar.getInstance().getTimeInMillis();
 
 		lista.add(new Order(counter, client.getId(), mapProduct, value, iva, priceDomicile, netValue, time));
-		return ResponseEntity.status(HttpStatus.OK).body("Se creÛ correctamente el pedido!!");
+		return ResponseEntity.status(HttpStatus.OK).body("Se cre√≥ correctamente el pedido!!");
 
 	}
 
@@ -78,7 +78,7 @@ public class OrderController extends TechBackApplication {
 		}
 		if (!edit) {
 			return ResponseEntity.status(HttpStatus.OK)
-					.body("No es posible editar su pedido, ya que han trancurrido m·s de 5 horas desde su creaciÛn");
+					.body("No es posible editar su pedido, ya que han trancurrido m√°s de 5 horas desde su creaci√≥n");
 
 		}
 
@@ -97,12 +97,12 @@ public class OrderController extends TechBackApplication {
 				order.setPriceDomicile(priceDomicile);
 				order.setNetValue(netValue);
 
-				return ResponseEntity.status(HttpStatus.OK).body("Se aÒadiÛ correctamente el producto al pedido!!");
+				return ResponseEntity.status(HttpStatus.OK).body("Se a√±adi√≥ correctamente el producto al pedido!!");
 
 			}
 		}
 
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OcurriÛ un error al agregar el producto");
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ocurri√≥ un error al agregar el producto");
 
 	}
 
@@ -112,6 +112,17 @@ public class OrderController extends TechBackApplication {
 		long substractionTime = timeNow - time;
 		substractionTime = substractionTime / (1000 * 60);
 		if (substractionTime < 5) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean isDeleteOrder(long time) {
+		Date fechaFin = new Date();
+		long timeNow = fechaFin.getTime();
+		long substractionTime = timeNow - time;
+		substractionTime = substractionTime / (1000 * 60);
+		if (substractionTime < 12) {
 			return true;
 		}
 		return false;
@@ -128,12 +139,16 @@ public class OrderController extends TechBackApplication {
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Object> deleteStudent(@PathVariable AtomicLong idOrder) {
+		boolean delete;
 		for (int i = 0; i <= lista.size(); i++) {
-			if (lista.get(i).getId() == (idOrder)) {
+			long time = lista.get(i).getTime();
+			delete = isDeleteOrder(time);
+			if (lista.get(i).getId() == (idOrder) && delete) {
 				lista.remove(i);
+				return ResponseEntity.noContent().build();
 			}
 		}
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.status(HttpStatus.OK).body("No tiene permiso para eliminar el pedido porque el tiempo ha expirado");
 	}
 
 }
